@@ -1,0 +1,44 @@
+import time
+import multiprocessing
+
+def integral(interval_number,process_num,lower_border,upper_border, array,current_process,queue):
+
+    
+    result=0
+    increment = (upper_border - lower_border) / interval_number
+    for j in range(round(interval_number/process_num)):
+        result += array[j+round(current_process*interval_number/process_num)] * increment 
+    queue.put(result)
+
+if __name__ == '__main__' :
+    f = open("G:\eneter1.txt", "r")
+    
+    result = 0
+    interval_number=float((f.readline()).replace('\n', ''))
+    lower_border = float((f.readline()).replace('\n', ''))
+    upper_border = float((f.readline()).replace('\n', ''))
+    
+    array=[]
+    processes=[]
+    queue = multiprocessing.SimpleQueue()
+    for line in f:
+        array.append(float(line.replace('\n', '')))
+
+    process_num=4
+
+    start=time.perf_counter()
+    for i in range(process_num):
+        print(f'started in {round(time.perf_counter()-start)} second, used {process_num} cores')
+        p=multiprocessing.Process(target=integral, args=[interval_number,process_num,lower_border,upper_border, array,i,queue])
+        p.start()
+        processes.append(p)
+
+    for process in processes:
+        process.join()
+
+    for process in processes:
+        result+=queue.get()
+
+    print(result)
+    print(f'Finished in {round(time.perf_counter()-start)} second')
+    f.close()
